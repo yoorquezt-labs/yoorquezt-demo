@@ -1,0 +1,13 @@
+node_id: "demo-node-1"
+listen_addr: "0.0.0.0:4433"
+api_addr: "0.0.0.0:8080"
+bootstrap_addr: "mesh-bootstrap:9000"
+chain: "ethereum"
+rpc_url: "http://mockrpc:9999"
+storage_type: "memory"
+api_token: "demo-token"
+log_level: "info"
+gossip_interval: "500ms"
+block_time: "2s"
+max_peers: 20
+mev_webhook_url: "http://mev-engine:9090/api/v1/bundle"

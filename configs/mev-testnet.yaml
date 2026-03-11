@@ -1,0 +1,36 @@
+listen: ":9090"
+chain: "ethereum"
+chain_id: 11155111
+rpc_url: "env:SEPOLIA_RPC_URL"
+api_token: "env:MEV_API_TOKEN"
+signer_key: "env:SIGNER_PRIVATE_KEY"
+database_url: "env:DATABASE_URL"
+redis_url: "env:REDIS_URL"
+mesh_url: "http://mesh-node-1:8080"
+log_level: "info"
+engine_interval: "12s"
+strategies:
+  arbitrage: true
+  liquidation: true
+  sandwich_protection: true
+  intent_solving: true
+  backrun: true
+protect:
+  enabled: true
+intent:
+  enabled: true
+orderflow:
+  enabled: true
+relay_marketplace:
+  enabled: true
+dex:
+  routers:
+    - address: "0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008"
+      name: "Uniswap V2 (Sepolia)"
+      version: "v2"
+    - address: "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
+      name: "Uniswap V3 (Sepolia)"
+      version: "v3"
+  tokens:
+    WETH: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"
+    USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"

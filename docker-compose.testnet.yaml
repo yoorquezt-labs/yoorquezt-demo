@@ -1,0 +1,188 @@
+version: "3.8"
+
+# YoorQuezt Testnet Demo Stack
+# Runs against real Sepolia testnet — for investor/grant demos
+#
+# Prerequisites:
+#   1. Copy .env.example to .env.testnet
+#   2. Set SEPOLIA_RPC_URL (Alchemy/Infura free tier)
+#   3. Set SIGNER_PRIVATE_KEY (test wallet with ~0.1 Sepolia ETH)
+#
+# Usage:
+#   docker compose -f docker-compose.testnet.yaml --env-file .env.testnet up -d
+
+x-mesh-image: &mesh-image
+  image: ghcr.io/yoorquezt-labs/yoorquezt-mesh:latest
+
+x-mev-image: &mev-image
+  image: ghcr.io/yoorquezt-labs/yoorquezt-mev:latest
+
+services:
+  # ─── Infrastructure ───────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: yoorquezt
+      POSTGRES_PASSWORD: yoorquezt-demo
+      POSTGRES_DB: yoorquezt
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./configs/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoorquezt"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Mesh Network (3 nodes) ──────────────────────────
+  mesh-bootstrap:
+    <<: *mesh-image
+    entrypoint: ["/app/bootstrap", "0.0.0.0:9000"]
+    ports:
+      - "9000:9000"
+
+  mesh-node-1:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node1.yaml"]
+    ports:
+      - "4433:4433/udp"
+      - "8080:8080"
+    volumes:
+      - ./configs/testnet-node1.yaml:/app/configs/demo-node1.yaml:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  mesh-node-2:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node2.yaml"]
+    ports:
+      - "4434:4434/udp"
+      - "8081:8080"
+    volumes:
+      - ./configs/testnet-node2.yaml:/app/configs/demo-node2.yaml:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  mesh-node-3:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node3.yaml"]
+    ports:
+      - "4435:4435/udp"
+      - "8082:8080"
+    volumes:
+      - ./configs/testnet-node3.yaml:/app/configs/demo-node3.yaml:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  # ─── MEV Engine (real Sepolia) ────────────────────────
+  mev-engine:
+    <<: *mev-image
+    entrypoint: ["mev", "/etc/mev/testnet.yaml"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/mev-testnet.yaml:/etc/mev/testnet.yaml:ro
+    environment:
+      SEPOLIA_RPC_URL: ${SEPOLIA_RPC_URL}
+      SIGNER_PRIVATE_KEY: ${SIGNER_PRIVATE_KEY}
+      MEV_API_TOKEN: ${MEV_API_TOKEN:-demo-token}
+      DATABASE_URL: postgres://yoorquezt:yoorquezt-demo@postgres:5432/yoorquezt?sslmode=disable
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mesh-node-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  # ─── OFA Proxy (intercepting real txs) ────────────────
+  ofa-proxy:
+    <<: *mev-image
+    entrypoint: ["yqofa"]
+    ports:
+      - "9100:9100"
+    environment:
+      OFA_LISTEN: ":9100"
+      MEV_UPSTREAM: "http://mev-engine:9090"
+      MEV_API_TOKEN: ${MEV_API_TOKEN:-demo-token}
+      OFA_REBATE_PCT: "80"
+      ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+
+  # ─── WebSocket Gateway ───────────────────────────────
+  gateway:
+    <<: *mev-image
+    entrypoint: ["yqmev", "-listen", ":9099", "-upstream", "http://mev-engine:9090", "-token", "${MEV_API_TOKEN:-demo-token}"]
+    ports:
+      - "9099:9099"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+
+  # ─── Observability ───────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: yoorquezt
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./dashboards/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    ports:
+      - "3200:3200"
+      - "4318:4318"
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./configs/tempo.yaml:/etc/tempo.yaml:ro
+
+volumes:
+  pgdata:

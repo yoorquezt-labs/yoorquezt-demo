@@ -1,0 +1,17 @@
+listen: ":9090"
+chain: "ethereum"
+rpc_url: "http://mockrpc:9999"
+api_token: "demo-token"
+database_url: "postgres://yoorquezt:yoorquezt-demo@postgres:5432/yoorquezt?sslmode=disable"
+redis_url: "redis://redis:6379"
+mesh_url: "http://mesh-node-1:8080"
+log_level: "info"
+strategies:
+  arbitrage: true
+  liquidation: true
+  sandwich_protection: true
+  intent_solving: true
+  backrun: true
+relay:
+  enabled: true
+  mock_mode: true

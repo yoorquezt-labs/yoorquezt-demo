@@ -1,0 +1,12 @@
+node_id: "testnet-node-2"
+listen_addr: "0.0.0.0:4434"
+api_addr: "0.0.0.0:8080"
+bootstrap_addr: "mesh-bootstrap:9000"
+chain: "ethereum"
+rpc_url: "env:ETHEREUM_RPC_URL"
+storage_type: "memory"
+api_token: "demo-token"
+log_level: "info"
+gossip_interval: "500ms"
+block_time: "12s"
+max_peers: 20

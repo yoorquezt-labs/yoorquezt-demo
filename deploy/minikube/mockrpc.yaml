@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mockrpc
+  namespace: yoorquezt-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mockrpc
+  template:
+    metadata:
+      labels:
+        app: mockrpc
+    spec:
+      containers:
+        - name: mockrpc
+          image: ghcr.io/yoorquezt-labs/yoorquezt-mev:latest
+          command: ["mockrpc", ":9999"]
+          ports:
+            - containerPort: 9999
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9999
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mockrpc
+  namespace: yoorquezt-demo
+spec:
+  selector:
+    app: mockrpc
+  ports:
+    - port: 9999
+      targetPort: 9999

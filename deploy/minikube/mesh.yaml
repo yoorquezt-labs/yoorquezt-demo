@@ -1,0 +1,162 @@
+---
+# Bootstrap server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mesh-bootstrap
+  namespace: yoorquezt-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mesh-bootstrap
+  template:
+    metadata:
+      labels:
+        app: mesh-bootstrap
+    spec:
+      containers:
+        - name: bootstrap
+          image: ghcr.io/yoorquezt-labs/yoorquezt-mesh:latest
+          command: ["/app/bootstrap", "0.0.0.0:9000"]
+          ports:
+            - containerPort: 9000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mesh-bootstrap
+  namespace: yoorquezt-demo
+spec:
+  selector:
+    app: mesh-bootstrap
+  ports:
+    - port: 9000
+      targetPort: 9000
+---
+# Mesh node ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mesh-config
+  namespace: yoorquezt-demo
+data:
+  mesh.yaml: |
+    node_id: "demo-node"
+    listen_addr: "0.0.0.0:4433"
+    api_addr: "0.0.0.0:8080"
+    bootstrap_addr: "mesh-bootstrap:9000"
+    chain: "ethereum"
+    rpc_url: "http://mockrpc:9999"
+    storage_type: "memory"
+    api_token: "demo-token"
+    log_level: "info"
+    gossip_interval: "500ms"
+    block_time: "2s"
+    max_peers: 20
+    mev_webhook_url: "http://mev-engine:9090/api/v1/bundle"
+---
+# Mesh nodes StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mesh-node
+  namespace: yoorquezt-demo
+spec:
+  serviceName: mesh-node-headless
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: mesh-node
+  template:
+    metadata:
+      labels:
+        app: mesh-node
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: node
+          image: ghcr.io/yoorquezt-labs/yoorquezt-mesh:latest
+          command: ["/app/node", "--config", "/etc/mesh/mesh.yaml"]
+          ports:
+            - containerPort: 4433
+              protocol: UDP
+              name: quic
+            - containerPort: 8080
+              protocol: TCP
+              name: http
+          env:
+            - name: MESH_SHARED_KEY
+              value: "demo-shared-key-32bytes!"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mesh
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: mesh-config
+---
+# Headless service for StatefulSet DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: mesh-node-headless
+  namespace: yoorquezt-demo
+spec:
+  clusterIP: None
+  selector:
+    app: mesh-node
+  ports:
+    - port: 4433
+      targetPort: 4433
+      protocol: UDP
+      name: quic
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+---
+# ClusterIP service for mesh API
+apiVersion: v1
+kind: Service
+metadata:
+  name: mesh-api
+  namespace: yoorquezt-demo
+spec:
+  type: NodePort
+  selector:
+    app: mesh-node
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
