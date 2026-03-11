@@ -1,4 +1,4 @@
-listen_addr: "0.0.0.0:4435"
+listen_addr: "0.0.0.0:4433"
 bootstrap_nodes:
   - "mesh-bootstrap:9000"
 chain: "ethereum"
@@ -9,13 +9,20 @@ api_token: "demo-token"
 gossip_bundle_threshold: 3
 gossip_interval_seconds: 10
 api_addr: "0.0.0.0:8080"
+mev_webhook:
+  enabled: true
+  url: "http://mev-engine:9090/api/v1/bundle"
+  api_token: "demo-token"
+  timeout: 5
 reputation:
   max_score: 100
   min_score: 0
   initial_score: 100
   reconnect_boost: 10
-  good_ack_boost: 5
-  timeout_penalty: 10
+  good_ack_boost: 10
+  timeout_penalty: 3
   invalid_block_penalty: 30
-  drop_threshold: 50
+  drop_threshold: 10
   bad_peer_cleanup_minutes: 5
+rate_limit_per_peer: 5000
+rate_limit_window_sec: 10

@@ -1,5 +1,6 @@
 .PHONY: up down demo demo-full status logs clean \
        testnet-up testnet-down testnet-demo testnet-logs testnet-status \
+       live-up live-down live-logs live-status \
        minikube-start minikube-deploy minikube-demo minikube-dash minikube-status minikube-clean \
        pull
 
@@ -85,6 +86,45 @@ testnet-logs:
 ## Testnet service health
 testnet-status:
 	@docker compose -f docker-compose.testnet.yaml ps
+	@echo ""
+	@echo "Health checks:"
+	@curl -sf http://localhost:8080/health 2>/dev/null && echo "  Mesh Node 1:  OK" || echo "  Mesh Node 1:  DOWN"
+	@curl -sf http://localhost:8081/health 2>/dev/null && echo "  Mesh Node 2:  OK" || echo "  Mesh Node 2:  DOWN"
+	@curl -sf http://localhost:8082/health 2>/dev/null && echo "  Mesh Node 3:  OK" || echo "  Mesh Node 3:  DOWN"
+	@curl -sf http://localhost:9090/health 2>/dev/null && echo "  MEV Engine:   OK" || echo "  MEV Engine:   DOWN"
+	@curl -sf http://localhost:9099/health 2>/dev/null && echo "  Gateway:      OK" || echo "  Gateway:      DOWN"
+	@curl -sf http://localhost:9100/healthz 2>/dev/null && echo "  OFA Proxy:    OK" || echo "  OFA Proxy:    DOWN"
+
+# ─── Live (Real testnets, no mocks) ─────────────────────
+
+## Start live stack (real Sepolia + L2s + Solana + Flashbots relay)
+live-up:
+	@test -f .env.testnet || (echo "ERROR: .env.testnet not found. Copy .env.example to .env.testnet and fill in values." && exit 1)
+	docker compose -f docker-compose.live.yaml --env-file .env.testnet up -d
+	@echo ""
+	@echo "Live testnet stack starting..."
+	@echo "  Chains:       Sepolia, Base, Arbitrum, Optimism, Solana devnet"
+	@echo "  Relays:       Flashbots Sepolia, MEV-Share SSE"
+	@echo "  Traffic Gen:  Running (10 tx/cycle, 3 bundles/cycle)"
+	@echo ""
+	@echo "  Mesh API:     http://localhost:8080"
+	@echo "  MEV Engine:   http://localhost:9090"
+	@echo "  Gateway (WS): ws://localhost:9099"
+	@echo "  OFA Proxy:    http://localhost:9100"
+	@echo "  Grafana:      http://localhost:3000 (admin/yoorquezt)"
+	@echo "  Prometheus:   http://localhost:9091"
+
+## Stop live stack
+live-down:
+	docker compose -f docker-compose.live.yaml --env-file .env.testnet down
+
+## Tail live logs
+live-logs:
+	docker compose -f docker-compose.live.yaml --env-file .env.testnet logs -f
+
+## Live service health
+live-status:
+	@docker compose -f docker-compose.live.yaml --env-file .env.testnet ps
 	@echo ""
 	@echo "Health checks:"
 	@curl -sf http://localhost:8080/health 2>/dev/null && echo "  Mesh Node 1:  OK" || echo "  Mesh Node 1:  DOWN"

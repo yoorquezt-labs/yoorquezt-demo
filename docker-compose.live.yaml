@@ -1,0 +1,306 @@
+# YoorQuezt Live Testnet Stack
+# No mockrpc — real Sepolia, Solana devnet, L2 testnets, Flashbots relay
+#
+# Usage:
+#   docker compose -f docker-compose.live.yaml --env-file .env.testnet up -d
+#
+# Prerequisites:
+#   .env.testnet with SEPOLIA_RPC_URL, SIGNER_PRIVATE_KEY, etc.
+
+x-mesh-image: &mesh-image
+  image: ghcr.io/yoorquezt-labs/yoorquezt-mesh:latest
+
+x-mev-image: &mev-image
+  image: ghcr.io/yoorquezt-labs/yoorquezt-mev:latest
+
+services:
+  # ─── Infrastructure ───────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: yoorquezt
+      POSTGRES_PASSWORD: yoorquezt-demo
+      POSTGRES_DB: yoorquezt
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./configs/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoorquezt"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Mesh Network (7 nodes, no mockrpc dependency) ───
+  mesh-bootstrap:
+    <<: *mesh-image
+    entrypoint: ["/app/bootstrap", "0.0.0.0:9000"]
+    ports:
+      - "9000:9000"
+
+  mesh-node-1:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4433:4433/udp"
+      - "8080:8080"
+    volumes:
+      - ./configs/live-node1.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  mesh-node-2:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4434:4434/udp"
+      - "8081:8080"
+    volumes:
+      - ./configs/live-node2.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  mesh-node-3:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4435:4435/udp"
+      - "8082:8080"
+    volumes:
+      - ./configs/live-node3.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  mesh-node-4:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4436:4436/udp"
+      - "8083:8080"
+    volumes:
+      - ./configs/live-node4.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  mesh-node-5:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4437:4437/udp"
+      - "8084:8080"
+    volumes:
+      - ./configs/live-node5.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  mesh-node-6:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4438:4438/udp"
+      - "8085:8080"
+    volumes:
+      - ./configs/live-node6.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  mesh-node-7:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
+    ports:
+      - "4439:4439/udp"
+      - "8086:8080"
+    volumes:
+      - ./configs/live-node7.yaml:/app/configs/node.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+
+  # ─── MEV Engine (real testnets) ──────────────────────
+  mev-engine:
+    <<: *mev-image
+    entrypoint: ["mev", "/etc/mev/live.yaml"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/mev-live.yaml:/etc/mev/live.yaml:ro
+    environment:
+      MEV_API_TOKEN: ${MEV_API_TOKEN:-demo-token}
+      SIGNER_PRIVATE_KEY: ${SIGNER_PRIVATE_KEY}
+      SEPOLIA_RPC_URL: ${SEPOLIA_RPC_URL}
+      BASE_SEPOLIA_RPC_URL: ${BASE_SEPOLIA_RPC_URL:-https://sepolia.base.org}
+      ARB_SEPOLIA_RPC_URL: ${ARB_SEPOLIA_RPC_URL:-https://sepolia-rollup.arbitrum.io/rpc}
+      OP_SEPOLIA_RPC_URL: ${OP_SEPOLIA_RPC_URL:-https://sepolia.optimism.io}
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      FLASHBOTS_RELAY_URL: ${FLASHBOTS_RELAY_URL:-https://relay-sepolia.flashbots.net}
+      MEV_SHARE_SSE_URL: ${MEV_SHARE_SSE_URL:-https://mev-share-sepolia.flashbots.net}
+      MEV_SHARE_RPC_URL: ${MEV_SHARE_RPC_URL:-https://relay-sepolia.flashbots.net}
+      DATABASE_URL: postgres://yoorquezt:yoorquezt-demo@postgres:5432/yoorquezt?sslmode=disable
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mesh-node-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  # ─── OFA Proxy (real chain RPCs) ─────────────────────
+  ofa-proxy:
+    <<: *mev-image
+    entrypoint: ["yqofa"]
+    ports:
+      - "9100:9100"
+    environment:
+      OFA_LISTEN: ":9100"
+      MEV_UPSTREAM: "http://mev-engine:9090"
+      MEV_API_TOKEN: ${MEV_API_TOKEN:-demo-token}
+      OFA_REBATE_PCT: "80"
+      ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
+      PRIVATE_KEY: ${SIGNER_PRIVATE_KEY}
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+
+  # ─── WebSocket Gateway ───────────────────────────────
+  gateway:
+    <<: *mev-image
+    entrypoint: ["yqmev", "-listen", ":9099", "-upstream", "http://mev-engine:9090", "-token", "${MEV_API_TOKEN:-demo-token}"]
+    ports:
+      - "9099:9099"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9099/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ─── Traffic Generator (Go, concurrent) ──────────────
+  traffic-gen:
+    <<: *mev-image
+    entrypoint:
+      - "trafficgen"
+      - "-mesh=http://mesh-node-1:8080,http://mesh-node-2:8080,http://mesh-node-3:8080,http://mesh-node-4:8080,http://mesh-node-5:8080,http://mesh-node-6:8080,http://mesh-node-7:8080"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-mode=daytrading"
+      - "-duration=1h"
+      - "-peak-tx-rate=500"
+      - "-peak-bundle-rate=100"
+      - "-protect-rate=5"
+      - "-intent-rate=3"
+      - "-workers=20"
+      - "-status-addr=:9190"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Status Logger (cron-style phase snapshots) ─────
+  status-logger:
+    <<: *mev-image
+    entrypoint:
+      - "statuslog"
+      - "-interval=60s"
+      - "-logdir=/data/logs"
+      - "-prometheus=http://prometheus:9090"
+      - "-mesh=http://mesh-node-1:8080,http://mesh-node-2:8080,http://mesh-node-3:8080,http://mesh-node-4:8080,http://mesh-node-5:8080,http://mesh-node-6:8080,http://mesh-node-7:8080"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-trafficgen=http://traffic-gen:9190"
+      - "-cycle=24h"
+      - "-duration=48h"
+    volumes:
+      - ./logs:/data/logs
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Observability ───────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./configs/prometheus-live.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: yoorquezt
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./dashboards/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    ports:
+      - "3200:3200"
+      - "4318:4318"
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./configs/tempo.yaml:/etc/tempo.yaml:ro
+
+volumes:
+  pgdata:

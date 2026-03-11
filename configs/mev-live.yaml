@@ -1,0 +1,149 @@
+# YoorQuezt MEV Engine — Live Testnet Config
+# Connects to real Sepolia, Solana devnet, L2 testnets, Flashbots relay
+
+listen_addr: ":9090"
+mesh_node_url: "http://mesh-node-1:8080"
+mesh_api_token: "env:MEV_API_TOKEN"
+api_token: "env:MEV_API_TOKEN"
+engine_interval: 12
+slot_aligned: true
+
+# ─── EVM Bundle Simulation (real RPCs) ─────────
+simulators:
+  enabled: true
+  timeout: 10
+  chains:
+    - chain: ethereum
+      rpc_url: "env:SEPOLIA_RPC_URL"
+      fork_block: "latest"
+    - chain: base
+      rpc_url: "env:BASE_SEPOLIA_RPC_URL"
+      fork_block: "latest"
+    - chain: arbitrum
+      rpc_url: "env:ARB_SEPOLIA_RPC_URL"
+      fork_block: "latest"
+    - chain: optimism
+      rpc_url: "env:OP_SEPOLIA_RPC_URL"
+      fork_block: "latest"
+
+# ─── Transaction Signer ───────────────────────
+signer:
+  private_key: "env:SIGNER_PRIVATE_KEY"
+
+# ─── MEV-Boost Relay (Sepolia Flashbots) ──────
+mev_boost:
+  enabled: true
+  relays:
+    - name: "flashbots-sepolia"
+      url: "env:FLASHBOTS_RELAY_URL"
+
+# ─── Relay Marketplace ────────────────────────
+relay_marketplace:
+  enabled: true
+  auto_register: true
+  max_relays: 10
+  reputation_threshold: 20
+  selection_strategy: "top_n"
+  max_relays_per_block: 3
+  seed_relays:
+    - name: "flashbots-sepolia"
+      url: "env:FLASHBOTS_RELAY_URL"
+      chains: ["ethereum"]
+
+# ─── MEV-Share (Flashbots SSE hints) ──────────
+mev_share:
+  enabled: true
+  sse_url: "env:MEV_SHARE_SSE_URL"
+  rpc_url: "env:MEV_SHARE_RPC_URL"
+  signer_key: "env:SIGNER_PRIVATE_KEY"
+
+# ─── Arbitrage Detection ─────────────────────
+arbitrage:
+  enabled: true
+  interval: 12
+  min_spread_bps: 50
+  bid_pct: 10
+  pairs:
+    # Sepolia WETH/USDC
+    - token_a: "WETH"
+      token_b: "USDC"
+      chains:
+        - chain: ethereum
+          router: "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
+          token_a_addr: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"
+          token_b_addr: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+          dex_version: "v3"
+          fee_tier: 3000
+        - chain: base
+          router: "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4"
+          token_a_addr: "0x4200000000000000000000000000000000000006"
+          token_b_addr: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+          dex_version: "v3"
+          fee_tier: 3000
+
+# ─── CEX Price Feeds (real) ──────────────────
+cex:
+  enabled: true
+  binance:
+    enabled: true
+    symbols: ["ETHUSDT", "SOLUSDT", "BNBUSDT"]
+  coinbase:
+    enabled: true
+    symbols: ["ETH-USD", "SOL-USD"]
+
+# ─── Cross-Chain Arb ─────────────────────────
+crosschain:
+  enabled: true
+  interval_sec: 12
+  min_spread_bps: 50
+  pairs:
+    - token_in: "WETH"
+      token_out: "USDC"
+      symbol: "ETHUSDT"
+      venues:
+        - chain: ethereum
+          router: "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
+          venue_name: "Uniswap V3 (Sepolia)"
+          dex_version: "v3"
+          fee_tier: 3000
+        - chain: base
+          router: "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4"
+          venue_name: "Uniswap V3 (Base Sepolia)"
+          dex_version: "v3"
+          fee_tier: 3000
+
+# ─── Solana Arbitrage ────────────────────────
+solana_arbitrage:
+  enabled: true
+  rpc_url: "env:SOLANA_RPC_URL"
+  interval_ms: 2000
+  min_spread_bps: 30
+
+# ─── MEV Protection ─────────────────────────
+protect:
+  enabled: true
+  sandwich_check: true
+  tx_rebate_pct: 80
+
+# ─── Intent Solving ─────────────────────────
+intent:
+  enabled: true
+  max_pool_size: 1000
+  pool_ttl_seconds: 300
+
+# ─── Orderflow Auction ──────────────────────
+orderflow:
+  enabled: true
+  rebate_pct: 80
+
+# ─── Risk Management ────────────────────────
+risk:
+  enabled: true
+  max_loss_wei: "100000000000000000"
+  max_position_wei: "500000000000000000"
+  max_drawdown_pct: 10
+  daily_loss_limit: "50000000000000000"
+
+# ─── Storage ─────────────────────────────────
+storage:
+  postgres_dsn: "env:DATABASE_URL"

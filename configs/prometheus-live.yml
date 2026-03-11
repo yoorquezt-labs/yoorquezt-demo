@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: 'mesh-node-1'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-1:8080']
+
+  - job_name: 'mesh-node-2'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-2:8080']
+
+  - job_name: 'mesh-node-3'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-3:8080']
+
+  - job_name: 'mesh-node-4'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-4:8080']
+
+  - job_name: 'mesh-node-5'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-5:8080']
+
+  - job_name: 'mesh-node-6'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-6:8080']
+
+  - job_name: 'mesh-node-7'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-7:8080']
+
+  - job_name: 'mev-engine'
+    static_configs:
+      - targets: ['mev-engine:9090']
+
+  - job_name: 'ofa-proxy'
+    static_configs:
+      - targets: ['ofa-proxy:9100']
+
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['gateway:9099']

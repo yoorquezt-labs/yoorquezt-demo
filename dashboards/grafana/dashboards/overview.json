@@ -4,19 +4,14 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
+  "version": 4,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "title": "Platform Health",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-      "targets": [
-        {
-          "expr": "up",
-          "legendFormat": "{{job}}"
-        }
-      ],
+      "gridPos": { "h": 5, "w": 5, "x": 0, "y": 0 },
+      "targets": [{ "expr": "up", "legendFormat": "{{job}}" }],
       "fieldConfig": {
         "defaults": {
           "mappings": [
@@ -26,96 +21,143 @@
       }
     },
     {
-      "title": "Mesh — Transactions Gossiped",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
-      "targets": [
-        {
-          "expr": "rate(mesh_gossip_messages_total[1m])",
-          "legendFormat": "{{instance}}"
-        }
-      ]
-    },
-    {
       "title": "Mesh — Connected Peers",
       "type": "gauge",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
-      "targets": [
-        {
-          "expr": "mesh_connected_peers",
-          "legendFormat": "{{instance}}"
-        }
-      ]
+      "gridPos": { "h": 5, "w": 4, "x": 5, "y": 0 },
+      "targets": [{ "expr": "mesh_peers_connected", "legendFormat": "{{job}}" }],
+      "fieldConfig": { "defaults": { "min": 0, "max": 10, "thresholds": { "steps": [{"color":"red","value":0},{"color":"yellow","value":1},{"color":"green","value":3}] } } }
     },
     {
-      "title": "MEV — Bundles Submitted",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
-      "targets": [
-        {
-          "expr": "rate(mev_bundles_submitted_total[1m])",
-          "legendFormat": "bundles/s"
-        }
-      ]
-    },
-    {
-      "title": "MEV — Auction Profit (ETH)",
+      "title": "Mesh — Mempool Size",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
-      "targets": [
-        {
-          "expr": "mev_auction_profit_eth_total",
-          "legendFormat": "profit"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": { "unit": "eth" }
-      }
+      "gridPos": { "h": 5, "w": 4, "x": 9, "y": 0 },
+      "targets": [{ "expr": "mesh_mempool_size", "legendFormat": "{{job}}" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":5000},{"color":"red","value":10000}] } } }
     },
     {
-      "title": "OFA — Rebates Distributed",
+      "title": "Mesh — Block Height",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
-      "targets": [
-        {
-          "expr": "ofa_rebates_total",
-          "legendFormat": "rebates"
-        }
-      ]
+      "gridPos": { "h": 5, "w": 3, "x": 13, "y": 0 },
+      "targets": [{ "expr": "max(mesh_block_height)", "legendFormat": "blocks" }],
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "blue", "mode": "fixed" } } }
     },
     {
-      "title": "Mesh — Gossip Latency (p99)",
+      "title": "Mesh — Uptime",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 3, "x": 16, "y": 0 },
+      "targets": [{ "expr": "max(mesh_uptime_seconds) / 60", "legendFormat": "minutes" }],
+      "fieldConfig": { "defaults": { "unit": "m", "decimals": 1, "color": { "fixedColor": "green", "mode": "fixed" } } }
+    },
+    {
+      "title": "Blocks Built",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 2, "x": 19, "y": 0 },
+      "targets": [{ "expr": "mev_blocks_built_total{job=\"mev-engine\"}", "legendFormat": "blocks" }],
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "purple", "mode": "fixed" } } }
+    },
+    {
+      "title": "Auction Ticks",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 3, "x": 21, "y": 0 },
+      "targets": [{ "expr": "mev_auction_ticks_total{job=\"mev-engine\"}", "legendFormat": "ticks" }],
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "purple", "mode": "fixed" } } }
+    },
+    {
+      "title": "MEV — Engine Throughput",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
       "targets": [
-        {
-          "expr": "histogram_quantile(0.99, rate(mesh_gossip_latency_seconds_bucket[5m]))",
-          "legendFormat": "p99"
-        },
-        {
-          "expr": "histogram_quantile(0.50, rate(mesh_gossip_latency_seconds_bucket[5m]))",
-          "legendFormat": "p50"
-        }
+        { "expr": "rate(mev_auction_ticks_total{job=\"mev-engine\"}[1m])", "legendFormat": "auction ticks/s" },
+        { "expr": "rate(mev_bundles_processed_total{job=\"mev-engine\"}[1m])", "legendFormat": "bundles processed/s" },
+        { "expr": "rate(mev_bundles_submitted_total{job=\"mev-engine\"}[1m])", "legendFormat": "bundles submitted/s" },
+        { "expr": "rate(mev_protect_tx_submitted_total{job=\"mev-engine\"}[1m])", "legendFormat": "protected tx/s" },
+        { "expr": "rate(mev_intents_submitted_total{job=\"mev-engine\"}[1m])", "legendFormat": "intents/s" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "s" }
-      }
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
     },
     {
-      "title": "MEV — Strategy Performance",
+      "title": "MEV — Bundle & Block Pipeline",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
       "targets": [
-        {
-          "expr": "rate(mev_strategy_executions_total[5m])",
-          "legendFormat": "{{strategy}}"
-        }
-      ]
+        { "expr": "mev_pool_size{job=\"mev-engine\"}", "legendFormat": "bundle pool" },
+        { "expr": "mev_protect_pool_size{job=\"mev-engine\"}", "legendFormat": "protect pool" },
+        { "expr": "mev_intent_pool_size{job=\"mev-engine\"}", "legendFormat": "intent pool" },
+        { "expr": "mev_bundles_ranked_total{job=\"mev-engine\"}", "legendFormat": "bundles ranked" },
+        { "expr": "mev_blocks_built_total{job=\"mev-engine\"}", "legendFormat": "blocks built" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
+    },
+    {
+      "title": "MEV — Auction Tick Duration",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, rate(mev_auction_tick_duration_seconds_bucket{job=\"mev-engine\"}[5m]))", "legendFormat": "p99" },
+        { "expr": "histogram_quantile(0.50, rate(mev_auction_tick_duration_seconds_bucket{job=\"mev-engine\"}[5m]))", "legendFormat": "p50" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "max": 15, "custom": { "fillOpacity": 10, "thresholdsStyle": { "mode": "off" } } } }
+    },
+    {
+      "title": "MEV — Strategy Activity",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "targets": [
+        { "expr": "mev_bundles_processed_total{job=\"mev-engine\"}", "legendFormat": "bundles processed" },
+        { "expr": "mev_bundles_ranked_total{job=\"mev-engine\"}", "legendFormat": "bundles ranked" },
+        { "expr": "mev_intents_submitted_total{job=\"mev-engine\"}", "legendFormat": "intents submitted" },
+        { "expr": "mev_protect_tx_submitted_total{job=\"mev-engine\"}", "legendFormat": "protected txs" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
+    },
+    {
+      "title": "Risk & PnL",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 21 },
+      "targets": [
+        { "expr": "mev_risk_halted{job=\"mev-engine\"}", "legendFormat": "risk halted" },
+        { "expr": "mev_risk_drawdown_pct{job=\"mev-engine\"}", "legendFormat": "drawdown %" },
+        { "expr": "mev_blocked_actors_gauge{job=\"mev-engine\"}", "legendFormat": "blocked actors" }
+      ],
+      "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"OK","color":"green"},"1":{"text":"HALTED","color":"red"}}}] } }
+    },
+    {
+      "title": "Relay Marketplace",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 21 },
+      "targets": [
+        { "expr": "mev_relay_marketplace_size{job=\"mev-engine\"}", "legendFormat": "active relays" },
+        { "expr": "sum(mev_relay_selections_total)", "legendFormat": "relay selections" },
+        { "expr": "sum(mesh_peers_connected)", "legendFormat": "mesh peers" }
+      ],
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "blue", "mode": "fixed" } } }
+    },
+    {
+      "title": "MEV Revenue",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 21 },
+      "targets": [
+        { "expr": "mev_block_total_profit_wei{job=\"mev-engine\"} / 1e18", "legendFormat": "block profit (ETH)" },
+        { "expr": "mev_protect_mev_extracted_total_wei{job=\"mev-engine\"} / 1e18", "legendFormat": "MEV extracted (ETH)" },
+        { "expr": "mev_protect_tx_rebates_total_wei{job=\"mev-engine\"} / 1e18", "legendFormat": "user rebates (ETH)" }
+      ],
+      "fieldConfig": { "defaults": { "decimals": 6, "color": { "fixedColor": "green", "mode": "fixed" } } }
+    },
+    {
+      "title": "CEX Price Feeds",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 21 },
+      "targets": [
+        { "expr": "mev_cex_tickers_received_total{exchange=\"coinbase\"}", "legendFormat": "coinbase ticks" },
+        { "expr": "mev_sim_cache_misses_total{job=\"mev-engine\"}", "legendFormat": "sim cache misses" },
+        { "expr": "mev_bundles_submitted_total{job=\"mev-engine\"}", "legendFormat": "total bundles" }
+      ],
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" } } }
     }
   ],
   "refresh": "5s",
   "schemaVersion": 39,
-  "tags": ["yoorquezt"],
+  "tags": ["yoorquezt", "mev", "mesh"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "title": "YoorQuezt Platform Overview",

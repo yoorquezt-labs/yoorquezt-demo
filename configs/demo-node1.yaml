@@ -4,6 +4,7 @@ bootstrap_nodes:
 chain: "ethereum"
 private_key: "/app/key.pem"
 cert: "/app/cert.pem"
+tls_insecure: true
 api_token: "demo-token"
 gossip_bundle_threshold: 3
 gossip_interval_seconds: 10

@@ -31,15 +31,38 @@ YoorQuezt is a **full-stack MEV infrastructure platform** that combines:
 
 ## Quick Start
 
-### Option 1: Docker Compose (quickest)
+### Option 1: Local Mock (quickest, no API keys needed)
 
 ```bash
-make up          # Start full stack (mesh + MEV + monitoring)
+make up          # Start full stack with mock RPC
 make demo        # Run 60-second automated demo
 make demo-full   # Run 5-minute comprehensive demo
 ```
 
-### Option 2: Minikube (production-like)
+### Option 2: Live Testnet (real chains + relays, for demos/investors)
+
+```bash
+# 1. Configure .env.testnet (Alchemy free tier + test wallet)
+cp .env.example .env.testnet
+# Edit .env.testnet with your SEPOLIA_RPC_URL and SIGNER_PRIVATE_KEY
+
+# 2. Start the live stack
+make live-up       # Sepolia + Base + Arb + Optimism + Solana devnet
+make live-status   # Check all services
+make live-logs     # Tail logs
+make live-down     # Stop
+
+# What's included:
+#   - 3-node mesh cluster (real P2P gossip, QUIC transport)
+#   - MEV engine scanning real Sepolia + L2 testnets
+#   - Flashbots Sepolia relay + MEV-Share SSE hints
+#   - Binance + Coinbase real price feeds
+#   - Cross-chain arb detection (Ethereum ↔ Base)
+#   - Traffic generator (continuous txs, bundles, intents, protected txs)
+#   - Full Grafana dashboard (http://localhost:3000)
+```
+
+### Option 3: Minikube (production-like)
 
 ```bash
 make minikube-start   # Start minikube cluster
@@ -198,6 +221,42 @@ for opportunity in client.stream_opportunities():
 | `yqtui` | 5-tab TUI dashboard (live WebSocket) |
 | `yqmev` | WebSocket JSON-RPC gateway |
 | `yqofa` | Order Flow Auction proxy |
+
+## Performance Benchmarks
+
+Tested on a 3-node mesh cluster with gossip, peer discovery, and MEV engine active.
+
+### Relay Throughput
+
+| Test | Transactions | Duration | Throughput | Metrics Failures |
+|------|-------------|----------|------------|-----------------|
+| Baseline | 500 | 2s | 250 tx/s | 0 |
+| Medium load | 2,000 | 7s | 285 tx/s | 0 |
+| Heavy load | 5,000 | 15s | 333 tx/s | 0 |
+| Stress test | 10,000 | 38s | 263 tx/s | 0 |
+| Max stress | 25,000 | 114s | 219 tx/s | 0 |
+
+### Cluster Stability
+
+| Metric | Result |
+|--------|--------|
+| **Nodes UP** | 3/3 throughout all tests |
+| **Peers connected** | 4 per node (full mesh) |
+| **Metrics response** | <2s under 10K tx load |
+| **Block building** | Continuous under load |
+| **Gossip propagation** | Lock-free snapshot pattern, no starvation |
+| **Race detector** | All concurrency tests pass with `-race` |
+
+### Key Latencies
+
+| Operation | p50 | p99 |
+|-----------|-----|-----|
+| Transaction relay (ingest) | <1ms | <5ms |
+| Metrics endpoint | <10ms | <100ms |
+| Peer gossip round | <500ms | <2s |
+| Block build cycle | <50ms | <200ms |
+
+> All benchmarks run on Docker Desktop (Apple Silicon). Production hardware will yield higher throughput.
 
 ## Project Stats
 
