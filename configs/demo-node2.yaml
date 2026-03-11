@@ -1,12 +1,20 @@
-node_id: "demo-node-2"
 listen_addr: "0.0.0.0:4434"
-api_addr: "0.0.0.0:8080"
-bootstrap_addr: "mesh-bootstrap:9000"
+bootstrap_nodes:
+  - "mesh-bootstrap:9000"
 chain: "ethereum"
-rpc_url: "http://mockrpc:9999"
-storage_type: "memory"
+private_key: "/app/key.pem"
+cert: "/app/cert.pem"
 api_token: "demo-token"
-log_level: "info"
-gossip_interval: "500ms"
-block_time: "2s"
-max_peers: 20
+gossip_bundle_threshold: 3
+gossip_interval_seconds: 10
+api_addr: "0.0.0.0:8080"
+reputation:
+  max_score: 100
+  min_score: 0
+  initial_score: 100
+  reconnect_boost: 10
+  good_ack_boost: 5
+  timeout_penalty: 10
+  invalid_block_penalty: 30
+  drop_threshold: 50
+  bad_peer_cleanup_minutes: 5

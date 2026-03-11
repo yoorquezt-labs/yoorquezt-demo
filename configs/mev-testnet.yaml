@@ -8,7 +8,7 @@ database_url: "env:DATABASE_URL"
 redis_url: "env:REDIS_URL"
 mesh_url: "http://mesh-node-1:8080"
 log_level: "info"
-engine_interval: "12s"
+engine_interval: 12
 strategies:
   arbitrage: true
   liquidation: true

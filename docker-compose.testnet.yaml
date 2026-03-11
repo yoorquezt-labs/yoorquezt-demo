@@ -1,4 +1,4 @@
-version: "3.8"
+# version removed - obsolete in modern Docker Compose
 
 # YoorQuezt Testnet Demo Stack
 # Runs against real Sepolia testnet — for investor/grant demos
@@ -58,7 +58,7 @@ services:
     volumes:
       - ./configs/testnet-node1.yaml:/app/configs/demo-node1.yaml:ro
     environment:
-      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
       ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
     depends_on:
       mesh-bootstrap:
@@ -78,7 +78,7 @@ services:
     volumes:
       - ./configs/testnet-node2.yaml:/app/configs/demo-node2.yaml:ro
     environment:
-      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
       ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
     depends_on:
       mesh-bootstrap:
@@ -93,7 +93,7 @@ services:
     volumes:
       - ./configs/testnet-node3.yaml:/app/configs/demo-node3.yaml:ro
     environment:
-      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
       ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
     depends_on:
       mesh-bootstrap:

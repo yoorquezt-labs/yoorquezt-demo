@@ -67,7 +67,7 @@ services:
     volumes:
       - ./configs/demo-node1.yaml:/app/configs/demo-node1.yaml:ro
     environment:
-      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
     depends_on:
       mesh-bootstrap:
         condition: service_started
@@ -88,7 +88,7 @@ services:
     volumes:
       - ./configs/demo-node2.yaml:/app/configs/demo-node2.yaml:ro
     environment:
-      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
     depends_on:
       mesh-bootstrap:
         condition: service_started
@@ -104,7 +104,7 @@ services:
     volumes:
       - ./configs/demo-node3.yaml:/app/configs/demo-node3.yaml:ro
     environment:
-      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-demo-shared-key-32bytes!}
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
     depends_on:
       mesh-bootstrap:
         condition: service_started
