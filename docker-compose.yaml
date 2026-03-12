@@ -1,5 +1,7 @@
-# YoorQuezt Demo Stack
-# Pre-built images — no source code required
+# YoorQuezt Demo Stack — Real Testnets
+# Connects to Sepolia, Base Sepolia, Arb Sepolia, Solana devnet, Flashbots relay
+#
+# Prerequisites: .env with SEPOLIA_RPC_URL, SIGNER_PRIVATE_KEY, MEV_API_TOKEN
 # Usage: docker compose up -d
 
 x-mesh-image: &mesh-image
@@ -37,19 +39,7 @@ services:
       timeout: 3s
       retries: 5
 
-  # ─── Mock Blockchain RPC ──────────────────────────────
-  mockrpc:
-    <<: *mev-image
-    entrypoint: ["mockrpc", ":9999"]
-    ports:
-      - "9999:9999"
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9999/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  # ─── Mesh Network ────────────────────────────────────
+  # ─── Mesh Network (7 nodes, real testnets) ─────────────
   mesh-bootstrap:
     <<: *mesh-image
     entrypoint: ["/app/bootstrap", "0.0.0.0:9000"]
@@ -58,12 +48,12 @@ services:
 
   mesh-node-1:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node1.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4433:4433/udp"
       - "8080:8080"
     volumes:
-      - ./configs/demo-node1.yaml:/app/configs/demo-node1.yaml:ro
+      - ./configs/live-node1.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -71,22 +61,20 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 15
 
   mesh-node-2:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node2.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4434:4434/udp"
       - "8081:8080"
     volumes:
-      - ./configs/demo-node2.yaml:/app/configs/demo-node2.yaml:ro
+      - ./configs/live-node2.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -94,17 +82,15 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
 
   mesh-node-3:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node3.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4435:4435/udp"
       - "8082:8080"
     volumes:
-      - ./configs/demo-node3.yaml:/app/configs/demo-node3.yaml:ro
+      - ./configs/live-node3.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -112,17 +98,15 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
 
   mesh-node-4:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node4.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4436:4436/udp"
       - "8083:8080"
     volumes:
-      - ./configs/demo-node4.yaml:/app/configs/demo-node4.yaml:ro
+      - ./configs/live-node4.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -130,17 +114,15 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
 
   mesh-node-5:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node5.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4437:4437/udp"
       - "8084:8080"
     volumes:
-      - ./configs/demo-node5.yaml:/app/configs/demo-node5.yaml:ro
+      - ./configs/live-node5.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -148,17 +130,15 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
 
   mesh-node-6:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node6.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4438:4438/udp"
       - "8085:8080"
     volumes:
-      - ./configs/demo-node6.yaml:/app/configs/demo-node6.yaml:ro
+      - ./configs/live-node6.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -166,17 +146,15 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
 
   mesh-node-7:
     <<: *mesh-image
-    entrypoint: ["/app/node", "--config", "/app/configs/demo-node7.yaml"]
+    entrypoint: ["/app/node", "--config", "/app/configs/node.yaml"]
     ports:
       - "4439:4439/udp"
       - "8086:8080"
     volumes:
-      - ./configs/demo-node7.yaml:/app/configs/demo-node7.yaml:ro
+      - ./configs/live-node7.yaml:/app/configs/node.yaml:ro
       - ./certs/key.pem:/app/key.pem:ro
       - ./certs/cert.pem:/app/cert.pem:ro
     environment:
@@ -184,19 +162,26 @@ services:
     depends_on:
       mesh-bootstrap:
         condition: service_started
-      mockrpc:
-        condition: service_healthy
 
-  # ─── MEV Engine ───────────────────────────────────────
+  # ─── MEV Engine (real testnets) ─────────────────────────
   mev-engine:
     <<: *mev-image
-    entrypoint: ["mev", "/etc/mev/demo.yaml"]
+    entrypoint: ["mev", "/etc/mev/live.yaml"]
     ports:
       - "9090:9090"
     volumes:
-      - ./configs/mev-demo.yaml:/etc/mev/demo.yaml:ro
+      - ./configs/mev-live.yaml:/etc/mev/live.yaml:ro
     environment:
       MEV_API_TOKEN: ${MEV_API_TOKEN:-demo-token}
+      SIGNER_PRIVATE_KEY: ${SIGNER_PRIVATE_KEY}
+      SEPOLIA_RPC_URL: ${SEPOLIA_RPC_URL}
+      BASE_SEPOLIA_RPC_URL: ${BASE_SEPOLIA_RPC_URL:-https://sepolia.base.org}
+      ARB_SEPOLIA_RPC_URL: ${ARB_SEPOLIA_RPC_URL:-https://sepolia-rollup.arbitrum.io/rpc}
+      OP_SEPOLIA_RPC_URL: ${OP_SEPOLIA_RPC_URL:-https://sepolia.optimism.io}
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      FLASHBOTS_RELAY_URL: ${FLASHBOTS_RELAY_URL:-https://relay-sepolia.flashbots.net}
+      MEV_SHARE_SSE_URL: ${MEV_SHARE_SSE_URL:-https://mev-share-sepolia.flashbots.net}
+      MEV_SHARE_RPC_URL: ${MEV_SHARE_RPC_URL:-https://relay-sepolia.flashbots.net}
       DATABASE_URL: postgres://yoorquezt:yoorquezt-demo@postgres:5432/yoorquezt?sslmode=disable
       REDIS_URL: redis://redis:6379
     depends_on:
@@ -210,9 +195,9 @@ services:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/health"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 15
 
-  # ─── OFA Proxy ────────────────────────────────────────
+  # ─── OFA Proxy (real chain RPCs) ────────────────────────
   ofa-proxy:
     <<: *mev-image
     entrypoint: ["yqofa"]
@@ -223,11 +208,13 @@ services:
       MEV_UPSTREAM: "http://mev-engine:9090"
       MEV_API_TOKEN: ${MEV_API_TOKEN:-demo-token}
       OFA_REBATE_PCT: "80"
+      ETHEREUM_RPC_URL: ${SEPOLIA_RPC_URL}
+      PRIVATE_KEY: ${SIGNER_PRIVATE_KEY}
     depends_on:
       mev-engine:
         condition: service_healthy
 
-  # ─── WebSocket Gateway ───────────────────────────────
+  # ─── WebSocket Gateway ─────────────────────────────────
   gateway:
     <<: *mev-image
     entrypoint: ["yqmev", "-listen", ":9099", "-upstream", "http://mev-engine:9090", "-token", "${MEV_API_TOKEN:-demo-token}"]
@@ -242,7 +229,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # ─── Traffic Generator (Go, concurrent) ──────────────
+  # ─── Traffic Generator (Go, concurrent) ────────────────
   traffic-gen:
     <<: *mev-image
     entrypoint:
@@ -265,7 +252,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ─── Status Logger (cron-style phase snapshots) ─────
+  # ─── Status Logger (cron-style phase snapshots) ────────
   status-logger:
     <<: *mev-image
     entrypoint:
@@ -286,7 +273,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ─── Observability ───────────────────────────────────
+  # ─── Observability ─────────────────────────────────────
   prometheus:
     image: prom/prometheus:v2.51.0
     ports:
