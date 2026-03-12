@@ -273,6 +273,73 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # ─── Competing Intent Solvers ──────────────────────────
+  solver-speed:
+    build:
+      context: .
+      dockerfile: Dockerfile.solver
+    entrypoint:
+      - "/app/solver"
+      - "-strategy=speed"
+      - "-name=SpeedSolver"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-redis=redis://redis:6379"
+      - "-interval=8s"
+      - "-status-addr=:9200"
+    ports:
+      - "9200:9200"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  solver-price:
+    build:
+      context: .
+      dockerfile: Dockerfile.solver
+    entrypoint:
+      - "/app/solver"
+      - "-strategy=price"
+      - "-name=PriceSolver"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-redis=redis://redis:6379"
+      - "-interval=10s"
+      - "-status-addr=:9201"
+    ports:
+      - "9201:9201"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  solver-cross:
+    build:
+      context: .
+      dockerfile: Dockerfile.solver
+    entrypoint:
+      - "/app/solver"
+      - "-strategy=cross"
+      - "-name=CrossChainSolver"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-redis=redis://redis:6379"
+      - "-interval=12s"
+      - "-status-addr=:9202"
+    ports:
+      - "9202:9202"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   # ─── Observability ─────────────────────────────────────
   prometheus:
     image: prom/prometheus:v2.51.0
