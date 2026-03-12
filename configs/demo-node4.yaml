@@ -20,7 +20,7 @@ reputation:
   initial_score: 100
   reconnect_boost: 10
   good_ack_boost: 5
-  timeout_penalty: 10
+  timeout_penalty: 2
   invalid_block_penalty: 30
-  drop_threshold: 50
+  drop_threshold: 10
   bad_peer_cleanup_minutes: 5
