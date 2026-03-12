@@ -179,9 +179,6 @@ services:
       ARB_SEPOLIA_RPC_URL: ${ARB_SEPOLIA_RPC_URL:-https://sepolia-rollup.arbitrum.io/rpc}
       OP_SEPOLIA_RPC_URL: ${OP_SEPOLIA_RPC_URL:-https://sepolia.optimism.io}
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
-      FLASHBOTS_RELAY_URL: ${FLASHBOTS_RELAY_URL:-https://relay-sepolia.flashbots.net}
-      MEV_SHARE_SSE_URL: ${MEV_SHARE_SSE_URL:-https://mev-share-sepolia.flashbots.net}
-      MEV_SHARE_RPC_URL: ${MEV_SHARE_RPC_URL:-https://relay-sepolia.flashbots.net}
       DATABASE_URL: postgres://yoorquezt:yoorquezt-demo@postgres:5432/yoorquezt?sslmode=disable
       REDIS_URL: redis://redis:6379
     depends_on:

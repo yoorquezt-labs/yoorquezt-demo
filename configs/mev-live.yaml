@@ -1,5 +1,5 @@
 # YoorQuezt MEV Engine — Live Testnet Config
-# Connects to real Sepolia, Solana devnet, L2 testnets, Flashbots relay
+# Connects to real Sepolia, Solana devnet, L2 testnets
 
 listen_addr: ":9090"
 mesh_node_url: "http://mesh-node-1:8080"
@@ -30,12 +30,10 @@ simulators:
 signer:
   private_key: "env:SIGNER_PRIVATE_KEY"
 
-# ─── MEV-Boost Relay (Sepolia Flashbots) ──────
+# ─── MEV-Boost Relay (YoorQuezt built-in) ─────
 mev_boost:
   enabled: true
-  relays:
-    - name: "flashbots-sepolia"
-      url: "env:FLASHBOTS_RELAY_URL"
+  relays: []
 
 # ─── Relay Marketplace ────────────────────────
 relay_marketplace:
@@ -45,17 +43,6 @@ relay_marketplace:
   reputation_threshold: 20
   selection_strategy: "top_n"
   max_relays_per_block: 3
-  seed_relays:
-    - name: "flashbots-sepolia"
-      url: "env:FLASHBOTS_RELAY_URL"
-      chains: ["ethereum"]
-
-# ─── MEV-Share (Flashbots SSE hints) ──────────
-mev_share:
-  enabled: true
-  sse_url: "env:MEV_SHARE_SSE_URL"
-  rpc_url: "env:MEV_SHARE_RPC_URL"
-  signer_key: "env:SIGNER_PRIVATE_KEY"
 
 # ─── Arbitrage Detection ─────────────────────
 arbitrage:
