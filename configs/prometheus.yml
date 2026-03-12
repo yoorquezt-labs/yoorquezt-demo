@@ -1,5 +1,6 @@
 global:
   scrape_interval: 15s
+  scrape_timeout: 14s
   evaluation_interval: 15s
 
 scrape_configs:
@@ -20,6 +21,30 @@ scrape_configs:
       credentials: demo-token
     static_configs:
       - targets: ['mesh-node-3:8080']
+
+  - job_name: 'mesh-node-4'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-4:8080']
+
+  - job_name: 'mesh-node-5'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-5:8080']
+
+  - job_name: 'mesh-node-6'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-6:8080']
+
+  - job_name: 'mesh-node-7'
+    authorization:
+      credentials: demo-token
+    static_configs:
+      - targets: ['mesh-node-7:8080']
 
   - job_name: 'mev-engine'
     static_configs:

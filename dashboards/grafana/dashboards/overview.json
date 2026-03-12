@@ -93,10 +93,11 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
       "targets": [
-        { "expr": "histogram_quantile(0.99, rate(mev_auction_tick_duration_seconds_bucket{job=\"mev-engine\"}[5m]))", "legendFormat": "p99" },
-        { "expr": "histogram_quantile(0.50, rate(mev_auction_tick_duration_seconds_bucket{job=\"mev-engine\"}[5m]))", "legendFormat": "p50" }
+        { "expr": "histogram_quantile(0.99, rate(mev_auction_tick_duration_seconds_bucket{job=\"mev-engine\"}[5m])) * 1000", "legendFormat": "p99" },
+        { "expr": "histogram_quantile(0.50, rate(mev_auction_tick_duration_seconds_bucket{job=\"mev-engine\"}[5m])) * 1000", "legendFormat": "p50" },
+        { "expr": "rate(mev_auction_tick_duration_seconds_sum{job=\"mev-engine\"}[5m]) / rate(mev_auction_tick_duration_seconds_count{job=\"mev-engine\"}[5m]) * 1000", "legendFormat": "avg" }
       ],
-      "fieldConfig": { "defaults": { "unit": "s", "max": 15, "custom": { "fillOpacity": 10, "thresholdsStyle": { "mode": "off" } } } }
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "fillOpacity": 10, "thresholdsStyle": { "mode": "off" }, "axisSoftMax": 100 } } }
     },
     {
       "title": "MEV — Strategy Activity",

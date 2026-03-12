@@ -115,6 +115,78 @@ services:
       mockrpc:
         condition: service_healthy
 
+  mesh-node-4:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node4.yaml"]
+    ports:
+      - "4436:4436/udp"
+      - "8083:8080"
+    volumes:
+      - ./configs/demo-node4.yaml:/app/configs/demo-node4.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+      mockrpc:
+        condition: service_healthy
+
+  mesh-node-5:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node5.yaml"]
+    ports:
+      - "4437:4437/udp"
+      - "8084:8080"
+    volumes:
+      - ./configs/demo-node5.yaml:/app/configs/demo-node5.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+      mockrpc:
+        condition: service_healthy
+
+  mesh-node-6:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node6.yaml"]
+    ports:
+      - "4438:4438/udp"
+      - "8085:8080"
+    volumes:
+      - ./configs/demo-node6.yaml:/app/configs/demo-node6.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+      mockrpc:
+        condition: service_healthy
+
+  mesh-node-7:
+    <<: *mesh-image
+    entrypoint: ["/app/node", "--config", "/app/configs/demo-node7.yaml"]
+    ports:
+      - "4439:4439/udp"
+      - "8086:8080"
+    volumes:
+      - ./configs/demo-node7.yaml:/app/configs/demo-node7.yaml:ro
+      - ./certs/key.pem:/app/key.pem:ro
+      - ./certs/cert.pem:/app/cert.pem:ro
+    environment:
+      MESH_SHARED_KEY: ${MESH_SHARED_KEY:-yoorqueztdemomeshsharedkey123456}
+    depends_on:
+      mesh-bootstrap:
+        condition: service_started
+      mockrpc:
+        condition: service_healthy
+
   # ─── MEV Engine ───────────────────────────────────────
   mev-engine:
     <<: *mev-image
@@ -184,7 +256,7 @@ services:
   grafana:
     image: grafana/grafana:10.4.1
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: yoorquezt
