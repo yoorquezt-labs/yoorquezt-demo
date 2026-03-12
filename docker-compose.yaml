@@ -242,6 +242,50 @@ services:
       timeout: 3s
       retries: 10
 
+  # ─── Traffic Generator (Go, concurrent) ──────────────
+  traffic-gen:
+    <<: *mev-image
+    entrypoint:
+      - "trafficgen"
+      - "-mesh=http://mesh-node-1:8080,http://mesh-node-2:8080,http://mesh-node-3:8080,http://mesh-node-4:8080,http://mesh-node-5:8080,http://mesh-node-6:8080,http://mesh-node-7:8080"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-mode=daytrading"
+      - "-duration=${TRAFFICGEN_DURATION:-8h}"
+      - "-peak-tx-rate=${PEAK_TX_RATE:-500}"
+      - "-peak-bundle-rate=${PEAK_BUNDLE_RATE:-100}"
+      - "-protect-rate=5"
+      - "-intent-rate=3"
+      - "-workers=20"
+      - "-status-addr=:9190"
+    ports:
+      - "9190:9190"
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Status Logger (cron-style phase snapshots) ─────
+  status-logger:
+    <<: *mev-image
+    entrypoint:
+      - "statuslog"
+      - "-interval=60s"
+      - "-logdir=/data/logs"
+      - "-prometheus=http://prometheus:9090"
+      - "-mesh=http://mesh-node-1:8080,http://mesh-node-2:8080,http://mesh-node-3:8080,http://mesh-node-4:8080,http://mesh-node-5:8080,http://mesh-node-6:8080,http://mesh-node-7:8080"
+      - "-mev=http://mev-engine:9090"
+      - "-token=${MEV_API_TOKEN:-demo-token}"
+      - "-trafficgen=http://traffic-gen:9190"
+      - "-cycle=24h"
+      - "-duration=48h"
+    volumes:
+      - ./logs:/data/logs
+    depends_on:
+      mev-engine:
+        condition: service_healthy
+    restart: unless-stopped
+
   # ─── Observability ───────────────────────────────────
   prometheus:
     image: prom/prometheus:v2.51.0
