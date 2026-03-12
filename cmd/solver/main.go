@@ -19,7 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
+	"github.com/yoorquezt-labs/yoorquezt-demo/internal/logger"
 	"math/big"
 	"net/http"
 	"os"
@@ -158,11 +158,14 @@ var (
 // ── Main ────────────────────────────────────────────────────────────
 
 func main() {
+	logger.Init("info")
+	defer logger.Sync()
+
 	flag.Parse()
 
 	cfg, ok := strategies[*strategy]
 	if !ok {
-		log.Fatalf("unknown strategy %q (use speed, price, cross)", *strategy)
+		logger.Fatalf("unknown strategy %q (use speed, price, cross)", *strategy)
 	}
 
 	solverName := *name
@@ -172,21 +175,21 @@ func main() {
 	solverID := fmt.Sprintf("solver-%s-%s", *strategy, randHex(4))
 	solverAddr := fmt.Sprintf("0x%s", randHex(20))
 
-	log.Printf("🧩 Solver starting: name=%s id=%s strategy=%s", solverName, solverID, *strategy)
+	logger.Infof("Solver starting: name=%s id=%s strategy=%s", solverName, solverID, *strategy)
 
 	// Connect to Redis
 	opts, err := redis.ParseURL(*redisURL)
 	if err != nil {
-		log.Fatalf("redis URL: %v", err)
+		logger.Fatalf("redis URL: %v", err)
 	}
 	rdb := redis.NewClient(opts)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		log.Fatalf("redis ping: %v", err)
+		logger.Fatalf("redis ping: %v", err)
 	}
-	log.Println("✅ Redis connected")
+	logger.Info("Redis connected")
 
 	// Register solver with MEV engine
 	regBody, _ := json.Marshal(map[string]any{
@@ -198,9 +201,9 @@ func main() {
 	})
 	resp, err := mevPost("/solver/register", regBody)
 	if err != nil {
-		log.Fatalf("solver register: %v", err)
+		logger.Fatalf("solver register: %v", err)
 	}
-	log.Printf("✅ Registered: %s", resp)
+	logger.Infof("Registered: %s", resp)
 
 	// Start status HTTP server
 	go serveStatus(solverID)
@@ -218,14 +221,14 @@ func main() {
 			case <-time.After(jitterDuration(*interval, 30)):
 				intentID, err := generateIntent(cfg)
 				if err != nil {
-					log.Printf("⚠️ generate intent: %v", err)
+					logger.Warnf("generate intent: %v", err)
 					errCount.Add(1)
 					continue
 				}
 				intentsGenerated.Add(1)
 				// Broadcast to all solvers
 				rdb.Publish(ctx, "yq:intents", fmt.Sprintf("%s|%s", solverID, intentID))
-				log.Printf("📤 Published intent %s", intentID)
+				logger.Infof("Published intent %s", intentID)
 			}
 		}
 	}()
@@ -247,13 +250,13 @@ func main() {
 
 				if err := solveIntent(solverID, iid, cfg); err != nil {
 					if !strings.Contains(err.Error(), "404") {
-						log.Printf("⚠️ solve %s: %v", iid, err)
+						logger.Warnf("solve %s: %v", iid, err)
 						errCount.Add(1)
 					}
 					return
 				}
 				solutionsPosted.Add(1)
-				log.Printf("🎯 Solved intent %s (strategy=%s)", iid, *strategy)
+				logger.Infof("Solved intent %s (strategy=%s)", iid, *strategy)
 
 				// Check if we won after a short delay
 				time.Sleep(2 * time.Second)
@@ -266,7 +269,7 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
-	log.Printf("🛑 Shutting down: intents=%d solutions=%d wins=%d errors=%d",
+	logger.Infof("Shutting down: intents=%d solutions=%d wins=%d errors=%d",
 		intentsGenerated.Load(), solutionsPosted.Load(), solutionsWon.Load(), errCount.Load())
 	cancel()
 }
@@ -411,7 +414,7 @@ func checkWin(solverID, intentID string) {
 	}
 	if status.BestSolution != nil && status.BestSolution.SolverID == solverID {
 		solutionsWon.Add(1)
-		log.Printf("🏆 WON intent %s (output=%s)", intentID, status.BestSolution.OutputAmount)
+		logger.Infof("WON intent %s (output=%s)", intentID, status.BestSolution.OutputAmount)
 	}
 }
 
@@ -473,7 +476,7 @@ func serveStatus(solverID string) {
 			"errors":            errCount.Load(),
 		})
 	})
-	log.Printf("📊 Status server on %s", *statusAddr)
+	logger.Infof("Status server on %s", *statusAddr)
 	http.ListenAndServe(*statusAddr, mux)
 }
 
