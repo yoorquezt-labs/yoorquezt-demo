@@ -63,7 +63,7 @@
       "fieldConfig": { "defaults": { "color": { "fixedColor": "purple", "mode": "fixed" } } }
     },
     {
-      "title": "MEV — Engine Throughput",
+      "title": "MEV — Engine Throughput (Testnet)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
       "targets": [
@@ -76,7 +76,7 @@
       "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
     },
     {
-      "title": "MEV — Bundle & Block Pipeline",
+      "title": "MEV — Bundle & Block Pipeline (Testnet)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
       "targets": [
@@ -89,7 +89,7 @@
       "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
     },
     {
-      "title": "MEV — Auction Tick Duration",
+      "title": "MEV — Auction Tick Duration (RPC-bound)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
       "targets": [
@@ -100,7 +100,7 @@
       "fieldConfig": { "defaults": { "unit": "ms", "custom": { "fillOpacity": 10, "thresholdsStyle": { "mode": "off" }, "axisSoftMax": 100 } } }
     },
     {
-      "title": "MEV — Strategy Activity",
+      "title": "MEV — Strategy Activity (Testnet)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
       "targets": [
@@ -112,7 +112,7 @@
       "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
     },
     {
-      "title": "Risk & PnL",
+      "title": "Risk Management",
       "type": "stat",
       "gridPos": { "h": 5, "w": 6, "x": 0, "y": 21 },
       "targets": [
@@ -123,7 +123,7 @@
       "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"OK","color":"green"},"1":{"text":"HALTED","color":"red"}}}] } }
     },
     {
-      "title": "Relay Marketplace",
+      "title": "Multi-Relay Marketplace",
       "type": "stat",
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 21 },
       "targets": [
@@ -134,7 +134,7 @@
       "fieldConfig": { "defaults": { "color": { "fixedColor": "blue", "mode": "fixed" } } }
     },
     {
-      "title": "MEV Revenue",
+      "title": "MEV Revenue (Testnet)",
       "type": "stat",
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 21 },
       "targets": [
@@ -145,7 +145,7 @@
       "fieldConfig": { "defaults": { "decimals": 6, "color": { "fixedColor": "green", "mode": "fixed" } } }
     },
     {
-      "title": "CEX Price Feeds",
+      "title": "Real-Time Market Data",
       "type": "stat",
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 21 },
       "targets": [
@@ -154,6 +154,48 @@
         { "expr": "mev_bundles_submitted_total{job=\"mev-engine\"}", "legendFormat": "total bundles" }
       ],
       "fieldConfig": { "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" } } }
+    },
+    {
+      "title": "Mesh Network — Live Logs",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 26 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "{service=\"mesh\"}",
+        "refId": "A"
+      }],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    },
+    {
+      "title": "MEV Engine — Live Logs",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 26 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "{service=\"mev\"}",
+        "refId": "A"
+      }],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
     }
   ],
   "refresh": "5s",
@@ -161,6 +203,6 @@
   "tags": ["yoorquezt", "mev", "mesh"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
-  "title": "YoorQuezt Platform Overview",
+  "title": "YoorQuezt — Cross-Chain Execution Market",
   "uid": "yoorquezt-overview"
 }

@@ -13,3 +13,10 @@ datasources:
     access: proxy
     url: http://tempo:3200
     editable: false
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    uid: loki
+    editable: false

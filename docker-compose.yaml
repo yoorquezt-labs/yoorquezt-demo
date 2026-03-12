@@ -280,6 +280,11 @@ services:
       - "9091:9090"
     volumes:
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
     depends_on:
       - mev-engine
       - mesh-node-1
@@ -299,6 +304,30 @@ services:
     depends_on:
       - prometheus
 
+  loki:
+    image: grafana/loki:2.9.4
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./configs/loki.yaml:/etc/loki/local-config.yaml:ro
+      - lokidata:/loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3100/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    volumes:
+      - ./configs/promtail.yaml:/etc/promtail/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: ["-config.file=/etc/promtail/config.yaml"]
+    depends_on:
+      loki:
+        condition: service_healthy
+
   tempo:
     image: grafana/tempo:2.4.1
     ports:
@@ -310,3 +339,5 @@ services:
 
 volumes:
   pgdata:
+  promdata:
+  lokidata:
