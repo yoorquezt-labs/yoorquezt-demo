@@ -144,6 +144,18 @@ risk:
   max_drawdown_pct: 10
   daily_loss_limit: "50000000000000000"
 
+# ─── Settlement Contracts (Sepolia) ─────────
+settlement:
+  enabled: true
+  protocol_fee_bps: 500
+  claim_window_days: 90
+  min_solver_stake_wei: "100000000000000000"
+  contracts:
+    ethereum:
+      auction: "0xdb33dd4aba5a718cb4817a2190a954ee8a46ebd4"
+      rebate: "0xcd9454e684e60255403cb1bd0647ff3cc4eaf000"
+      intent: "0x27ac1651b10d48dc49505f77fd1185be11a0115c"
+
 # ─── Storage ─────────────────────────────────
 storage:
   postgres_dsn: "env:DATABASE_URL"
