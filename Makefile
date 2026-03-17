@@ -2,7 +2,8 @@
        testnet-up testnet-down testnet-demo testnet-logs testnet-status \
        live-up live-down live-logs live-status \
        minikube-start minikube-deploy minikube-demo minikube-dash minikube-status minikube-clean \
-       pull
+       pull \
+       sdk-setup sdk-test sdk-test-curl sdk-test-ts sdk-test-py sdk-test-ws-ts sdk-test-ws-py
 
 # ─── Docker Compose ─────────────────────────────────────
 
@@ -182,3 +183,39 @@ minikube-dash:
 minikube-clean:
 	kubectl delete namespace yoorquezt-demo --ignore-not-found
 	minikube delete --profile=yoorquezt-demo
+
+# ─── SDK Tests (requires YQ_API_KEY) ────────────────
+
+## Install SDK test dependencies
+sdk-setup:
+	cd sdk/typescript && npm install
+	cd sdk/python && pip install -r requirements.txt
+	chmod +x sdk/curl/test-api-key.sh
+
+## Run all SDK tests
+sdk-test: sdk-test-curl sdk-test-ts sdk-test-py
+
+## Test API key with curl (all scopes)
+sdk-test-curl:
+	@test -n "$(YQ_API_KEY)" || (echo "Usage: make sdk-test-curl YQ_API_KEY=yq_live_..." && exit 1)
+	YQ_API_KEY=$(YQ_API_KEY) ./sdk/curl/test-api-key.sh
+
+## Test API key with TypeScript SDK
+sdk-test-ts:
+	@test -n "$(YQ_API_KEY)" || (echo "Usage: make sdk-test-ts YQ_API_KEY=yq_live_..." && exit 1)
+	cd sdk/typescript && npx tsc && YQ_API_KEY=$(YQ_API_KEY) node dist/test-all-scopes.js
+
+## Test API key with Python SDK
+sdk-test-py:
+	@test -n "$(YQ_API_KEY)" || (echo "Usage: make sdk-test-py YQ_API_KEY=yq_live_..." && exit 1)
+	cd sdk/python && YQ_API_KEY=$(YQ_API_KEY) python3 test_all_scopes.py
+
+## Test WebSocket subscriptions (TypeScript)
+sdk-test-ws-ts:
+	@test -n "$(YQ_API_KEY)" || (echo "Usage: make sdk-test-ws-ts YQ_API_KEY=yq_live_..." && exit 1)
+	cd sdk/typescript && npx tsc && YQ_API_KEY=$(YQ_API_KEY) node dist/test-websocket.js
+
+## Test WebSocket subscriptions (Python)
+sdk-test-ws-py:
+	@test -n "$(YQ_API_KEY)" || (echo "Usage: make sdk-test-ws-py YQ_API_KEY=yq_live_..." && exit 1)
+	cd sdk/python && YQ_API_KEY=$(YQ_API_KEY) python3 test_websocket.py

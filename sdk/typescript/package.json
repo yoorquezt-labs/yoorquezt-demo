@@ -1,0 +1,18 @@
+{
+  "name": "yoorquezt-demo-ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "test:scopes": "tsc && node dist/test-all-scopes.js",
+    "test:ws": "tsc && node dist/test-websocket.js",
+    "test:submit": "tsc && node dist/submit-tx.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
