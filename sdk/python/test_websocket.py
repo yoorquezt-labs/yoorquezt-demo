@@ -15,6 +15,7 @@ import os
 import sys
 import json
 import asyncio
+import ssl
 
 try:
     import websockets
@@ -38,15 +39,29 @@ async def main():
     print(f"  Key:     {API_KEY[:20]}...")
     print("=" * 50)
 
-    async with websockets.connect(GATEWAY_WS) as ws:
+    # Use default SSL context with certifi certs if available
+    ssl_ctx = ssl.create_default_context()
+    try:
+        import certifi
+        ssl_ctx.load_verify_locations(certifi.where())
+    except ImportError:
+        # Fall back to unverified if certifi not installed
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+
+    extra_headers = {"Authorization": f"Bearer {API_KEY}"}
+
+    async with websockets.connect(
+        GATEWAY_WS, ssl=ssl_ctx, additional_headers=extra_headers
+    ) as ws:
         print("\nConnected to gateway\n")
 
         # Subscribe to all topics
-        for topic in TOPICS:
+        for i, topic in enumerate(TOPICS):
             msg = json.dumps({
                 "jsonrpc": "2.0",
-                "id": 1,
-                "method": "yq_subscribe",
+                "id": 100 + i,
+                "method": "mev_subscribe",
                 "params": {"topic": topic},
             })
             await ws.send(msg)
@@ -54,6 +69,7 @@ async def main():
 
         print("\nListening for events (30s)...\n")
 
+        received = 0
         try:
             async with asyncio.timeout(30):
                 async for message in ws:
@@ -62,12 +78,13 @@ async def main():
                         topic = data.get("params", {}).get("topic", "unknown")
                         payload = json.dumps(data.get("params", {}).get("data", data.get("params")))[:200]
                         print(f"  [{topic}] {payload}")
+                        received += 1
                     else:
                         print(f"  [response] {json.dumps(data)[:200]}")
         except asyncio.TimeoutError:
             pass
 
-    print("\nDone.")
+    print(f"\nDone. Received {received} events.")
 
 
 if __name__ == "__main__":

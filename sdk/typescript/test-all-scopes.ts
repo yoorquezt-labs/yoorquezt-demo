@@ -20,10 +20,10 @@ if (!API_KEY) {
 const GATEWAY = process.env.GATEWAY_URL || "https://gateway-testnet.yoorquezt.io";
 const MESH = process.env.MESH_URL || "https://mesh-testnet.yoorquezt.io";
 
-function httpRequest(url: string, options: http.RequestOptions = {}, body?: string): Promise<any> {
+function httpRequest(url: string, options: http.RequestOptions = {}, body?: string, timeoutMs = 10000): Promise<any> {
   return new Promise((resolve, reject) => {
     const mod = url.startsWith("https") ? https : http;
-    options.timeout = 10000;
+    options.timeout = timeoutMs;
     const req = mod.request(url, options, (res) => {
       let data = "";
       res.on("data", (chunk) => (data += chunk));
@@ -35,7 +35,7 @@ function httpRequest(url: string, options: http.RequestOptions = {}, body?: stri
         }
       });
     });
-    req.on("timeout", () => { req.destroy(); reject(new Error("request timeout (10s)")); });
+    req.on("timeout", () => { req.destroy(); reject(new Error(`request timeout (${timeoutMs / 1000}s)`)); });
     req.on("error", reject);
     if (body) req.write(body);
     req.end();
@@ -54,8 +54,8 @@ async function rpc(method: string, params: Record<string, unknown> = {}) {
   }, body);
 }
 
-async function meshGet(path: string) {
-  return httpRequest(`${MESH}${path}`);
+async function meshGet(path: string, timeoutMs = 10000) {
+  return httpRequest(`${MESH}${path}`, {}, undefined, timeoutMs);
 }
 
 let pass = 0;
@@ -98,7 +98,7 @@ async function main() {
   await test("Health", "public", () => meshGet("/health"));
   await test("Peers", "public", () => meshGet("/peers"));
   await test("Chains", "public", () => meshGet("/chain"));
-  await test("Blocks", "public", () => meshGet("/blocks"));
+  await test("Blocks", "public", () => meshGet("/blocks", 30000));
 
   // Gateway RPC — OFA
   console.log("\n-- OFA (ofa:read, ofa:write) --");

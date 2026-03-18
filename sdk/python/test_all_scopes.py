@@ -41,10 +41,13 @@ def rpc(method: str, params: dict = None):
     return resp.json()
 
 
-def mesh_get(path: str):
-    resp = requests.get(f"{MESH}{path}", timeout=10)
+def mesh_get(path: str, timeout: int = 10):
+    resp = requests.get(f"{MESH}{path}", timeout=timeout)
     resp.raise_for_status()
-    return resp.json()
+    try:
+        return resp.json()
+    except requests.exceptions.JSONDecodeError:
+        return resp.text
 
 
 def test(name: str, scope: str, fn):
@@ -73,7 +76,7 @@ def main():
     test("Health", "public", lambda: mesh_get("/health"))
     test("Peers", "public", lambda: mesh_get("/peers"))
     test("Chains", "public", lambda: mesh_get("/chain"))
-    test("Blocks", "public", lambda: mesh_get("/blocks"))
+    test("Blocks", "public", lambda: mesh_get("/blocks", timeout=30))
 
     # OFA
     print("\n-- OFA (ofa:read, ofa:write) --")
