@@ -103,14 +103,17 @@ async function main() {
   // Gateway RPC — OFA
   console.log("\n-- OFA (ofa:read, ofa:write) --");
   await test("Gateway health", "public", () => rpc("mev_health"));
-  await test("Protect transaction", "ofa:write", () =>
-    rpc("mev_protectTx", {
+  let protectTxId = "";
+  await test("Protect transaction", "ofa:write", async () => {
+    const res = await rpc("mev_protectTx", {
       raw_tx: "0xf86c0a8502540be400825208947a250d5630b4cf539739df2c5dacb4c659f2488d880de0b6b3a764000080",
       chain: "ethereum",
-    })
-  );
+    });
+    if (res?.result?.tx_id) protectTxId = res.result.tx_id;
+    return res;
+  });
   await test("Get protection status", "ofa:read", () =>
-    rpc("mev_getProtectStatus", { tx_id: "ptx-test-123" })
+    rpc("mev_getProtectStatus", { tx_id: protectTxId || "ptx-test-123" })
   );
 
   // Gateway RPC — Bundles
