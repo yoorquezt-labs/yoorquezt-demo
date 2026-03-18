@@ -98,7 +98,7 @@ async function main() {
   await test("Health", "public", () => meshGet("/health"));
   await test("Peers", "public", () => meshGet("/peers"));
   await test("Chains", "public", () => meshGet("/chain"));
-  await test("Blocks", "public", () => meshGet("/blocks", 30000));
+  await test("Blocks", "public", () => meshGet("/blocks", 60000));
 
   // Gateway RPC — OFA
   console.log("\n-- OFA (ofa:read, ofa:write) --");

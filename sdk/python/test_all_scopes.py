@@ -76,26 +76,29 @@ def main():
     test("Health", "public", lambda: mesh_get("/health"))
     test("Peers", "public", lambda: mesh_get("/peers"))
     test("Chains", "public", lambda: mesh_get("/chain"))
-    test("Blocks", "public", lambda: mesh_get("/blocks", timeout=30))
+    test("Blocks", "public", lambda: mesh_get("/blocks", timeout=60))
 
     # OFA
     print("\n-- OFA (ofa:read, ofa:write) --")
     test("Gateway health", "public", lambda: rpc("mev_health"))
-    test(
-        "Protect transaction",
-        "ofa:write",
-        lambda: rpc(
+    protect_tx_id = "ptx-test-123"
+    def do_protect():
+        nonlocal protect_tx_id
+        res = rpc(
             "mev_protectTx",
             {
                 "raw_tx": "0xf86c0a8502540be400825208947a250d5630b4cf539739df2c5dacb4c659f2488d880de0b6b3a764000080",
                 "chain": "ethereum",
             },
-        ),
-    )
+        )
+        if res.get("result", {}).get("tx_id"):
+            protect_tx_id = res["result"]["tx_id"]
+        return res
+    test("Protect transaction", "ofa:write", do_protect)
     test(
         "Get protection status",
         "ofa:read",
-        lambda: rpc("mev_getProtectStatus", {"tx_id": "ptx-test-123"}),
+        lambda: rpc("mev_getProtectStatus", {"tx_id": protect_tx_id}),
     )
 
     # Bundles

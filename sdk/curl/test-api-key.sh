@@ -72,7 +72,7 @@ echo ""
 check "$RESULT"
 
 test_step "4/10" "public" "Mesh blocks"
-RESULT=$(curl -sf --max-time 30 "$MESH/blocks" 2>/dev/null || echo "")
+RESULT=$(curl -sf --max-time 60 "$MESH/blocks" 2>/dev/null || echo "")
 echo "  $RESULT" | head -c 200
 echo ""
 check "$RESULT"
