@@ -110,7 +110,7 @@ async function main() {
     })
   );
   await test("Get protection status", "ofa:read", () =>
-    rpc("mev_getProtectStatus", { tx_hash: "0xabc123" })
+    rpc("mev_getProtectStatus", { tx_id: "ptx-test-123" })
   );
 
   // Gateway RPC — Bundles

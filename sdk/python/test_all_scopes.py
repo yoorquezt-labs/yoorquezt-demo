@@ -92,7 +92,7 @@ def main():
     test(
         "Get protection status",
         "ofa:read",
-        lambda: rpc("mev_getProtectStatus", {"tx_hash": "0xabc123"}),
+        lambda: rpc("mev_getProtectStatus", {"tx_id": "ptx-test-123"}),
     )
 
     # Bundles

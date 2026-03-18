@@ -96,7 +96,7 @@ check "$RESULT"
 
 test_step "7/10" "ofa:read" "Get protection status"
 RESULT=$(curl -sf "$GATEWAY/rpc" "${AUTH[@]}" \
-  -d '{"jsonrpc":"2.0","id":3,"method":"mev_getProtectStatus","params":{"tx_hash":"0xabc123"}}' 2>/dev/null || echo "")
+  -d '{"jsonrpc":"2.0","id":3,"method":"mev_getProtectStatus","params":{"tx_id":"ptx-test-123"}}' 2>/dev/null || echo "")
 echo "  $RESULT"
 check "$RESULT"
 
